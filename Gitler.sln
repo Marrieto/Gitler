@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gitler", "Gitler\Gitler.csproj", "{4665D862-8543-4C6A-A7E2-46D13F502C97}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gitler", "Gitler.csproj", "{4665D862-8543-4C6A-A7E2-46D13F502C97}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
