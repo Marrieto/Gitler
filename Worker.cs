@@ -4,9 +4,9 @@ namespace Gitler;
 
 public class GitCommitAndPushService : BackgroundService
 {
-    // private readonly TimeSpan _runInterval = TimeSpan.FromDays(1); // Run once a day
     private readonly TimeSpan _runInterval = TimeSpan.FromMinutes(5); // Run every 5 minutes
-    private readonly string _repoPath = @"C:\path\to\your\repo"; // Your repository path
+
+    private const string FileName = "listOfDirectories.txt";
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -14,10 +14,20 @@ public class GitCommitAndPushService : BackgroundService
         {
             try
             {
-                // Run Git commands
-                RunGitCommand("add .");
-                RunGitCommand($"commit -m \"Auto-commit on {DateTime.Now:yyyy-MM-dd HH:mm:ss}\"");
-                RunGitCommand("push");
+                // Create the file in the current executing directory if it doesn't exist
+                CreateFileIfNotExist();
+
+                // Get the list of directories from the file
+                var directories = File.ReadAllLines(FileName);
+
+                // Loop through the directories
+                foreach (var directory in directories)
+                {
+                    // Run Git commands
+                    RunGitCommand("add .", directory);
+                    RunGitCommand($"commit -m \"Auto-commit on {DateTime.Now:yyyy-MM-dd HH:mm:ss}\"", directory);
+                    RunGitCommand("push", directory);
+                }
             }
             catch (Exception ex)
             {
@@ -25,11 +35,19 @@ public class GitCommitAndPushService : BackgroundService
                 Console.WriteLine($"An error occurred: {ex.Message}");
             }
 
-            await Task.Delay(_runInterval, stoppingToken); // Wait for 24 hours
+            await Task.Delay(_runInterval, stoppingToken);
         }
     }
 
-    private void RunGitCommand(string gitCommand)
+    private static void CreateFileIfNotExist()
+    {
+        if (!File.Exists(FileName))
+        {
+            File.WriteAllText(FileName, "");
+        }
+    }
+
+    private void RunGitCommand(string gitCommand, string gitDirectory)
     {
         using (var process = new Process())
         {
@@ -41,15 +59,15 @@ public class GitCommitAndPushService : BackgroundService
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 CreateNoWindow = true,
-                WorkingDirectory = _repoPath
+                WorkingDirectory = gitDirectory
             };
 
             process.Start();
-            
+
             // Read the output (or errors)
             string output = process.StandardOutput.ReadToEnd();
             string errors = process.StandardError.ReadToEnd();
-            
+
             process.WaitForExit();
 
             if (!string.IsNullOrEmpty(errors))
